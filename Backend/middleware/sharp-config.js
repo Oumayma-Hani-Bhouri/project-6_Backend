@@ -9,18 +9,20 @@ module.exports = (req, res, next) => {
 
   const filePath = req.file.path;
   const fileName = req.file.filename;
-  const outputFilePath = path.join("images", `resized_${fileName}`);
+  const outputFileName = fileName.split(".").slice(0, -1).join(".") + ".webp";
+  const outputFilePath = path.join("images", outputFileName);
 
-  // Désactivation du cache !!!
   sharp.cache(false);
   sharp(filePath)
     .resize({ height: 600 })
+    .toFormat("webp")
     .toFile(outputFilePath)
     .then(() => {
-      console.log(`Image ${fileName} optimisée avec succès !`);
-      // Remplacer le fichier original par le fichier optimisé
+      console.log(`Image ${fileName} optimisée en WebP avec succès !`);
+
       fs.unlink(filePath, () => {
         req.file.path = outputFilePath;
+        req.file.filename = outputFileName;
         console.log(`Image ${fileName} supprimée avec succès !`);
         next();
       });
