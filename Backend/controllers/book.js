@@ -86,11 +86,10 @@ exports.getAllBooks = (req, res, next) => {
 };
 
 exports.createRating = async (req, res) => {
-  const userId = req.body.userId;
-  const grade = req.body.rating;
   try {
     const { rating } = req.body;
-    if (rating < 0 || rating > 5) {
+
+    if (rating < 1 || rating > 5) {
       return res
         .status(400)
         .json({ message: "La note doit être comprise entre 1 et 5" });
@@ -103,7 +102,7 @@ exports.createRating = async (req, res) => {
 
     const userIdArray = book.ratings.map((rating) => rating.userId);
     if (userIdArray.includes(req.auth.userId)) {
-      return res.status(403).json({ message: "Not authorized" });
+      return res.status(403).json({ message: "Vous avez déjà noté ce livre" });
     }
 
     book.ratings.push({ ...req.body, grade: rating });
@@ -112,14 +111,17 @@ exports.createRating = async (req, res) => {
       (sum, rating) => sum + rating.grade,
       0
     );
-    book.averageRating = (totalGrades / book.ratings.length).toFixed(1);
+    book.averageRating = Number((totalGrades / book.ratings.length).toFixed(1));
 
     await book.save();
     return res.status(201).json(book);
   } catch (error) {
     return res
       .status(500)
-      .json({ error: "Erreur lors de la création de la notation" });
+      .json({
+        error: "Erreur lors de la création de la notation",
+        details: error,
+      });
   }
 };
 
