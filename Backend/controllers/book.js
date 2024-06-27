@@ -85,7 +85,9 @@ exports.getAllBooks = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
-exports.createRating = (req, res, next) => {
+exports.createRating = async (req, res) => {
+  const userId = req.body.userId;
+  const grade = req.body.rating;
   try {
     const { rating } = req.body;
     if (rating < 0 || rating > 5) {
@@ -94,7 +96,7 @@ exports.createRating = (req, res, next) => {
         .json({ message: "La note doit être comprise entre 1 et 5" });
     }
 
-    const book = Book.findById(req.params.id);
+    const book = await Book.findById(req.params.id);
     if (!book) {
       return res.status(404).json({ message: "Livre non trouvé" });
     }
@@ -112,7 +114,7 @@ exports.createRating = (req, res, next) => {
     );
     book.averageRating = (totalGrades / book.ratings.length).toFixed(1);
 
-    book.save();
+    await book.save();
     return res.status(201).json(book);
   } catch (error) {
     return res
