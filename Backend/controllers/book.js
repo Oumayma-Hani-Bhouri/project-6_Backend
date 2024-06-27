@@ -84,3 +84,47 @@ exports.getAllBooks = (req, res, next) => {
     .then((books) => res.status(200).json(books))
     .catch((error) => res.status(400).json({ error }));
 };
+
+exports.createRating = (req, res, next) => {
+  try {
+    const { rating } = req.body;
+    if (rating < 0 || rating > 5) {
+      return res
+        .status(400)
+        .json({ message: "La note doit être comprise entre 1 et 5" });
+    }
+
+    const book = Book.findById(req.params.id);
+    if (!book) {
+      return res.status(404).json({ message: "Livre non trouvé" });
+    }
+
+    const userIdArray = book.ratings.map((rating) => rating.userId);
+    if (userIdArray.includes(req.auth.userId)) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    book.ratings.push({ ...req.body, grade: rating });
+
+    const totalGrades = book.ratings.reduce(
+      (sum, rating) => sum + rating.grade,
+      0
+    );
+    book.averageRating = (totalGrades / book.ratings.length).toFixed(1);
+
+    book.save();
+    return res.status(201).json(book);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Erreur lors de la création de la notation" });
+  }
+};
+
+exports.getBestRating = (req, res, next) => {
+  Book.find()
+    .sort({ averageRating: -1 })
+    .limit(3)
+    .then((books) => res.status(200).json(books))
+    .catch((error) => res.status(500).json({ error }));
+};

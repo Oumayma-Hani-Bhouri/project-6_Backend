@@ -14,7 +14,7 @@ module.exports = (req, res, next) => {
 
   sharp.cache(false);
   sharp(filePath)
-    .resize({ height: 600 })
+    .resize(206, 260, { fit: "cover" })
     .toFormat("webp")
     .toFile(outputFilePath)
     .then(() => {
