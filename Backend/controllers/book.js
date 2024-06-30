@@ -37,7 +37,7 @@ exports.modifyBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
     .then((book) => {
       if (book.userId != req.auth.userId) {
-        res.status(401).json({ message: "Not authorized" });
+        res.status(403).json({ message: "Not authorized" });
       } else {
         Book.updateOne(
           { _id: req.params.id },
@@ -116,12 +116,10 @@ exports.createRating = async (req, res) => {
     await book.save();
     return res.status(201).json(book);
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        error: "Erreur lors de la création de la notation",
-        details: error,
-      });
+    return res.status(500).json({
+      error: "Erreur lors de la création de la notation",
+      details: error,
+    });
   }
 };
 
